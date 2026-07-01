@@ -1,1 +1,7 @@
-
+flask
+flask-cors
+flask-limiter
+yfinance
+pandas
+groq
+gunicorn
