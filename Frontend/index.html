@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BreachAlpha — Breach-to-Market Impact Engine</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">BreachAlpha</h1>
+            <p class="header-tagline">Breach-to-Market Impact Engine</p>
+        </div>
+    </header>
+
+    <!-- DISCLAIMER BANNER -->
+    <div class="disclaimer-banner">
+        <div class="disclaimer-content">
+            <div class="disclaimer-icon">ℹ</div>
+            <div class="disclaimer-text">
+                <strong>Portfolio Project Disclaimer:</strong> This is an educational/portfolio project for demonstrating breach-to-market correlation analysis. Data and analysis are for research purposes only. Do not rely on this for investment or security decisions. Always verify through official sources.
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="main-container">
+        <!-- SEARCH SECTION -->
+        <section class="search-section">
+            <div class="search-card">
+                <h2 class="search-title">Analyze Breach Impact</h2>
+                <p class="search-subtitle">Enter company name or ticker to see market correlation</p>
+                
+                <form id="searchForm" class="search-form">
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            class="search-input" 
+                            placeholder="e.g., EFX, Equifax, UBER"
+                            autocomplete="off"
+                        >
+                        <button type="submit" class="search-button">Analyze</button>
+                    </div>
+                    <!-- SUGGESTIONS DROPDOWN -->
+                    <div id="suggestionsDropdown" class="suggestions-dropdown" style="display: none;">
+                        <ul id="suggestionsList" class="suggestions-list"></ul>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- RESULTS SECTION (hidden initially) -->
+        <section id="resultsSection" class="results-section" style="display: none;">
+            
+            <!-- LOADING STATE -->
+            <div id="loadingState" class="loading-state" style="display: none;">
+                <div class="spinner-container">
+                    <div class="spinner"></div>
+                    <div class="spinner-ring"></div>
+                </div>
+                <p class="loading-text">Analyzing breach impact...</p>
+                <p class="loading-subtitle">Fetching stock data and running correlation analysis</p>
+                <div class="loading-progress">
+                    <div class="progress-bar"></div>
+                </div>
+            </div>
+
+            <!-- ERROR STATE - NOT FOUND (Missing from dataset) -->
+            <div id="notFoundState" class="not-found-state" style="display: none;">
+                <div class="error-icon">🔍</div>
+                <h3 class="error-heading">Company Not Found</h3>
+                <p id="notFoundMessage" class="not-found-message"></p>
+                
+                <div class="not-found-suggestions">
+                    <h4 class="suggestions-title">Did you mean?</h4>
+                    <div id="closestMatches" class="closest-matches"></div>
+                </div>
+                
+                <div class="contribute-section">
+                    <h4 class="contribute-title">We'd Love to Add It</h4>
+                    <p class="contribute-text">This company isn't in our dataset yet. If you know of a major breach for this company, we'd love to add it!</p>
+                    <button id="suggestBtn" class="suggest-button">📧 Suggest Company</button>
+                    <p class="contribute-note">Your suggestion helps improve our dataset.</p>
+                </div>
+                
+                <div class="recovery-actions">
+                    <button class="retry-button" onclick="clearSearch()">← Back to Search</button>
+                    <button class="browse-button" onclick="scrollToFeatured()">Browse Featured →</button>
+                </div>
+            </div>
+
+            <!-- ERROR STATE - API ERROR -->
+            <div id="errorState" class="error-state" style="display: none;">
+                <div class="error-icon">⚠</div>
+                <h3 class="error-heading">Analysis Error</h3>
+                <p id="errorMessage" class="error-message"></p>
+                <p class="error-hint">This might be temporary. Please try again.</p>
+                <button class="retry-button" onclick="location.reload()">🔄 Retry</button>
+            </div>
+
+            <!-- METRIC CARDS -->
+            <div id="metricsContainer" class="metrics-container" style="display: none;">
+                <div class="metric-card">
+                    <div class="metric-label">Company Price Change</div>
+                    <div id="companyChange" class="metric-value">—</div>
+                    <div class="metric-description">30-day post-breach performance</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label neutral">Market (S&P 500) Change</div>
+                    <div id="marketChange" class="metric-value">—</div>
+                    <div class="metric-description">Benchmark performance</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">Relative Impact</div>
+                    <div id="relativeImpact" class="metric-value">—</div>
+                    <div class="metric-description">Company vs market outperformance</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label neutral">Recovery Timeline</div>
+                    <div id="recoveryDays" class="metric-value">—</div>
+                    <div class="metric-description">Days to pre-breach price</div>
+                </div>
+            </div>
+
+            <!-- ANALYSIS SECTION -->
+            <div id="analysisContainer" class="analysis-container" style="display: none;">
+                <div class="analysis-header">
+                    <h3 class="analysis-title">AI-Generated Analysis</h3>
+                    <p class="analysis-disclaimer">ℹ Based on market correlation data. Correlation does not imply causation.</p>
+                </div>
+                <div class="analysis-text" id="analysisText">—</div>
+            </div>
+
+            <!-- COMPANY INFO SECTION -->
+            <div id="breachInfoContainer" class="breach-info-container" style="display: none;">
+                <div class="breach-info-header">
+                    <h3 class="breach-info-title">Breach Details</h3>
+                </div>
+                <div class="breach-info-grid">
+                    <div class="breach-info-item">
+                        <span class="info-label">Company</span>
+                        <span id="breachCompany" class="info-value">—</span>
+                    </div>
+                    <div class="breach-info-item">
+                        <span class="info-label">Ticker</span>
+                        <span id="breachTicker" class="info-value">—</span>
+                    </div>
+                    <div class="breach-info-item">
+                        <span class="info-label">Breach Date</span>
+                        <span id="breachDate" class="info-value">—</span>
+                    </div>
+                    <div class="breach-info-item">
+                        <span class="info-label">Severity</span>
+                        <span id="breachSeverity" class="info-value severity">—</span>
+                    </div>
+                    <div class="breach-info-item">
+                        <span class="info-label">Sector</span>
+                        <span id="breachSector" class="info-value">—</span>
+                    </div>
+                    <div class="breach-info-item">
+                        <span class="info-label">Type</span>
+                        <span id="breachType" class="info-value">—</span>
+                    </div>
+                    <div class="breach-info-item">
+                        <span class="info-label">Records Affected</span>
+                        <span id="breachRecords" class="info-value">—</span>
+                    </div>
+                    <div class="breach-info-item">
+                        <span class="info-label">Attack Vector</span>
+                        <span id="breachVector" class="info-value">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRICE CHART -->
+            <div id="chartContainer" class="chart-container" style="display: none;">
+                <div class="chart-header">
+                    <h3 class="chart-title">Stock Price Movement</h3>
+                    <p class="chart-subtitle">30 days pre-breach to 30 days post-breach</p>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURED COMPANIES SECTION -->
+        <section class="featured-section" id="featuredSection">
+            <h3 class="featured-title">Featured Companies</h3>
+            <p class="featured-subtitle">Click any company to analyze its breach impact</p>
+            <div id="suggestedCompanies" class="suggested-companies-grid">
+                <!-- Populated by script.js -->
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL FOR SUGGESTION -->
+    <div id="suggestionModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Suggest a Company</h3>
+                <button class="modal-close" onclick="closeSuggestionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Help us improve BreachAlpha by suggesting a company with a major breach.</p>
+                <input type="text" id="suggestCompanyInput" placeholder="Company name" class="modal-input">
+                <input type="text" id="suggestTickerInput" placeholder="Ticker (optional)" class="modal-input">
+                <textarea id="suggestDetailsInput" placeholder="Brief details about the breach (optional)" class="modal-textarea"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-cancel" onclick="closeSuggestionModal()">Cancel</button>
+                <button class="modal-submit" onclick="submitSuggestion()">Submit Suggestion</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <p class="footer-text">BreachAlpha © 2026 | Data sourced from verified public records | <a href="#" class="footer-link">GitHub</a></p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -4,6 +4,7 @@ Analyzes financial and market impact of breaches.
 """
 
 import logging
+import os
 from typing import Dict, Any, Optional
 import yfinance as yf
 from datetime import datetime, timedelta
@@ -19,6 +20,185 @@ class MarketService:
     
     def __init__(self):
         self.breach_service = BreachService()
+    
+    def analyze_breach_with_ai(self, query: str) -> Optional[Dict[str, Any]]:
+        """
+        CORE BreachAlpha FEATURE: Analyze breach-to-market correlation with AI
+        
+        Steps:
+        1. Find breach by company name or ticker
+        2. Fetch company stock data (30 days pre/post breach)
+        3. Fetch S&P 500 data (same period)
+        4. Calculate relative underperformance
+        5. Calculate recovery time
+        6. Call Groq AI for analysis
+        
+        Args:
+            query: Company name or ticker symbol
+        
+        Returns:
+            Dict with correlation data and AI analysis, or None if breach not found
+        """
+        try:
+            # Step 1: Find breach by company name or ticker
+            breach = self.breach_service.get_breach_by_company(query)
+            if not breach:
+                breach = self.breach_service.get_breach_by_ticker(query)
+            
+            if not breach:
+                logger.info(f'Breach not found for query: {query}')
+                return None
+            
+            # Step 2: Extract breach info
+            company_name = breach.get('company')
+            ticker = breach.get('ticker')
+            breach_date_str = breach.get('breach_date')
+            
+            if not ticker or ticker == 'null' or ticker is None:
+                logger.warning(f'No valid ticker for {company_name}')
+                return None
+            
+            # Parse ticker (handle "NYSE:XXX" format)
+            ticker_symbol = ticker.split(':')[1] if ':' in ticker else ticker
+            
+            # Step 3: Parse breach date
+            try:
+                breach_date = datetime.fromisoformat(breach_date_str).date()
+            except (ValueError, TypeError):
+                logger.error(f'Invalid breach date: {breach_date_str}')
+                return None
+            
+            # Step 4: Fetch company stock data
+            start_date = breach_date - timedelta(days=30)
+            end_date = breach_date + timedelta(days=30)
+            
+            try:
+                company_stock = yf.Ticker(ticker_symbol)
+                company_hist = company_stock.history(start=start_date, end=end_date)
+                
+                if company_hist.empty or len(company_hist) < 2:
+                    logger.warning(f'Insufficient data for {ticker_symbol}')
+                    return None
+            
+            except Exception as e:
+                logger.error(f'Error fetching company stock data for {ticker_symbol}: {e}')
+                return None
+            
+            # Step 5: Fetch S&P 500 data
+            try:
+                sp500 = yf.Ticker('^GSPC')
+                sp500_hist = sp500.history(start=start_date, end=end_date)
+                
+                if sp500_hist.empty or len(sp500_hist) < 2:
+                    logger.warning('Insufficient S&P 500 data')
+                    return None
+            
+            except Exception as e:
+                logger.error(f'Error fetching S&P 500 data: {e}')
+                return None
+            
+            # Step 6: Calculate company % change
+            company_first_price = company_hist['Close'].iloc[0]
+            company_last_price = company_hist['Close'].iloc[-1]
+            company_change = ((company_last_price - company_first_price) / company_first_price) * 100
+            
+            # Step 7: Calculate S&P 500 % change
+            sp500_first_price = sp500_hist['Close'].iloc[0]
+            sp500_last_price = sp500_hist['Close'].iloc[-1]
+            sp500_change = ((sp500_last_price - sp500_first_price) / sp500_first_price) * 100
+            
+            # Step 8: Calculate RELATIVE IMPACT (core metric)
+            relative_impact = company_change - sp500_change
+            
+            # Step 9: Calculate RECOVERY TIME
+            recovery_days = None
+            recovery_text = 'Did not recover to pre-breach price within 30 days'
+            
+            # Find breach date in the data
+            breach_date_prices = company_hist[company_hist.index.date == breach_date]
+            if not breach_date_prices.empty:
+                breach_price = breach_date_prices['Close'].iloc[0]
+                
+                # Look for recovery after breach date
+                post_breach_data = company_hist[company_hist.index.date >= breach_date]
+                for idx, (date, row) in enumerate(post_breach_data.iterrows()):
+                    if row['Close'] >= breach_price:
+                        recovery_days = idx
+                        recovery_text = f'Recovered to pre-breach price in {recovery_days} trading days'
+                        break
+            
+            # Step 10: Build correlation result dict
+            correlation_result = {
+                'company': company_name,
+                'ticker': ticker,
+                'breach_date': breach_date_str,
+                'breach_type': breach.get('type'),
+                'records_affected': breach.get('records_affected'),
+                'sector': breach.get('sector'),
+                'attack_vector': breach.get('attack_vector'),
+                'severity': breach.get('severity'),
+                'company_pct_change': round(company_change, 2),
+                'market_pct_change': round(sp500_change, 2),
+                'relative_impact': round(relative_impact, 2),
+                'recovery_days': recovery_days,
+                'recovery_text': recovery_text,
+                'analysis_period': f'{start_date} to {end_date}'
+            }
+            
+            # Step 11-12: Import and call Groq
+            try:
+                from ai_engine.groq_analysis import analyze_breach_impact
+                analysis_text = analyze_breach_impact(correlation_result)
+            except ImportError:
+                logger.warning('Groq analysis module not available')
+                analysis_text = self._fallback_analysis(correlation_result)
+            except Exception as e:
+                logger.error(f'Groq analysis failed: {e}')
+                analysis_text = f'AI analysis unavailable: {str(e)}'
+            
+            # Step 13: Return complete result
+            return {
+                'found': True,
+                'result': correlation_result,
+                'analysis': analysis_text
+            }
+        
+        except Exception as e:
+            logger.error(f'Unexpected error in analyze_breach_with_ai: {e}')
+            return None
+    
+    def _fallback_analysis(self, correlation_result: Dict[str, Any]) -> str:
+        """
+        Fallback analysis when Groq is unavailable.
+        
+        Args:
+            correlation_result: Dict with correlation metrics
+        
+        Returns:
+            Analysis text
+        """
+        company = correlation_result['company']
+        relative = correlation_result['relative_impact']
+        recovery = correlation_result['recovery_text']
+        severity = correlation_result['severity']
+        
+        if abs(relative) < 2:
+            correlation = "minimal correlation"
+        elif abs(relative) < 5:
+            correlation = "moderate correlation"
+        elif abs(relative) < 10:
+            correlation = "strong correlation"
+        else:
+            correlation = "very strong correlation"
+        
+        analysis = (
+            f"{company}'s stock appears to show {correlation} with the {severity.lower()} severity "
+            f"breach disclosure. The stock declined {abs(relative):.1f}% more than the broader market during "
+            f"the 60-day analysis window. {recovery}. "
+            f"Note: Market correlation does not imply causation; multiple factors influence stock price movements."
+        )
+        
+        return analysis
     
     def calculate_market_impact(self, company_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -149,17 +329,12 @@ class MarketService:
             records = 0
         
         # Estimate costs
-        # Average cost per compromised record: $150-$200
-        # Regulatory fines: 2-4% of revenue (variable)
-        # Incident response: $1M-$10M depending on severity
-        
         cost_per_record = 150  # Conservative estimate
         breach_remediation_cost = records * cost_per_record
         
         incident_response = {'Critical': 5_000_000, 'High': 2_000_000, 'Medium': 500_000}.get(severity, 1_000_000)
         
-        # Regulatory fines (variable by sector and jurisdiction)
-        regulatory_multiplier = {'Financial Services': 0.04, 'Healthcare': 0.03, 'Technology': 0.02}.get(sector, 0.015)
+        regulatory_multiplier = {'Financial Services': 0.04, 'Healthcare & Pharma': 0.03, 'Technology & Software': 0.02}.get(sector, 0.015)
         estimated_regulatory = records * cost_per_record * regulatory_multiplier
         
         total_estimated = breach_remediation_cost + incident_response + estimated_regulatory
@@ -231,9 +406,6 @@ class MarketService:
         Returns:
             Dict with correlation analysis
         """
-        # This would require more detailed historical data
-        # For now, return summary of available data
-        
         breaches_with_tickers = [b for b in self.breach_service.breaches if b.get('ticker')]
         
         return {
