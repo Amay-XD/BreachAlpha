@@ -1,5 +1,5 @@
 """
-Groq AI Analysis Module.
+Mistral AI Analysis Module.
 Provides AI-powered analysis of breach-to-market correlation.
 """
 
@@ -8,25 +8,26 @@ import logging
 from typing import Dict, Any
 
 try:
-    from groq import Groq
-    GROQ_AVAILABLE = True
+    from mistralai.client import MistralClient
+    from mistralai.models.chat_message import ChatMessage
+    MISTRAL_AVAILABLE = True
 except ImportError:
-    GROQ_AVAILABLE = False
+    MISTRAL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
 client = None
-if GROQ_AVAILABLE:
+if MISTRAL_AVAILABLE:
     try:
-        api_key = os.getenv('GROQ_API_KEY')
+        api_key = os.getenv('MISTRAL_API_KEY')
         if api_key:
-            client = Groq(api_key=api_key)
+            client = MistralClient(api_key=api_key)
     except Exception as e:
-        logger.warning(f'Groq client initialization failed: {e}')
+        logger.warning(f'Mistral client initialization failed: {e}')
 
 def analyze_breach_impact(correlation_result: Dict[str, Any]) -> str:
     """
-    Use Groq AI to analyze breach-to-market correlation.
+    Use Mistral AI to analyze breach-to-market correlation.
     
     Args:
         correlation_result: Dict with correlation metrics
@@ -34,8 +35,8 @@ def analyze_breach_impact(correlation_result: Dict[str, Any]) -> str:
     Returns:
         AI-generated analysis text
     """
-    if not client or not GROQ_AVAILABLE:
-        logger.warning('Groq client not available, using fallback analysis')
+    if not client or not MISTRAL_AVAILABLE:
+        logger.warning('Mistral client not available, using fallback analysis')
         return _fallback_breach_analysis(correlation_result)
     
     try:
@@ -80,19 +81,18 @@ Your task: Write a 2-3 sentence analysis that:
 Analysis:
 """
         
-        message = client.messages.create(
-            model='llama-3.3-70b-versatile',
-            max_tokens=300,
-            messages=[
-                {'role': 'user', 'content': prompt}
-            ]
+        message = client.chat(
+            model='mistral-small',
+            messages=[ChatMessage(role='user', content=prompt)],
+            temperature=0.3,
+            max_tokens=300
         )
         
-        analysis = message.content[0].text if message.content else _fallback_breach_analysis(correlation_result)
+        analysis = message.choices[0].message.content if message.choices else _fallback_breach_analysis(correlation_result)
         return analysis.strip()
     
     except Exception as e:
-        logger.error(f'Groq analysis failed: {e}')
+        logger.error(f'Mistral analysis failed: {e}')
         return _fallback_breach_analysis(correlation_result)
 
 def analyze_no_breach(query: str) -> str:
@@ -105,7 +105,7 @@ def analyze_no_breach(query: str) -> str:
     Returns:
         Analysis text
     """
-    if not client or not GROQ_AVAILABLE:
+    if not client or not MISTRAL_AVAILABLE:
         return _fallback_no_breach(query)
     
     try:
@@ -121,23 +121,22 @@ Provide a helpful 1-2 sentence response that:
 Response:
 """
         
-        message = client.messages.create(
-            model='llama-3.3-70b-versatile',
-            max_tokens=150,
-            messages=[
-                {'role': 'user', 'content': prompt}
-            ]
+        message = client.chat(
+            model='mistral-small',
+            messages=[ChatMessage(role='user', content=prompt)],
+            temperature=0.3,
+            max_tokens=150
         )
         
-        return message.content[0].text if message.content else _fallback_no_breach(query)
+        return message.choices[0].message.content if message.choices else _fallback_no_breach(query)
     
     except Exception as e:
-        logger.error(f'Groq no_breach analysis failed: {e}')
+        logger.error(f'Mistral no_breach analysis failed: {e}')
         return _fallback_no_breach(query)
 
 def _fallback_breach_analysis(correlation_result: Dict[str, Any]) -> str:
     """
-    Fallback analysis when Groq is unavailable.
+    Fallback analysis when Mistral is unavailable.
     """
     company = correlation_result['company']
     relative = correlation_result['relative_impact']
