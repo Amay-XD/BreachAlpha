@@ -24,7 +24,8 @@ from collectors.correlations import (
 )
 from data.breach_lookup import find_breach, load_breaches
 from ai_engine.mistral_analysis import analyze_breach_impact, analyze_no_breach
-from output.pdf import generate_breach_report  # For future PDF export
+from output.pdf import generate_breach_report_pdf
+
 
 # ============================================================================
 # LOGGING CONFIGURATION
@@ -360,18 +361,54 @@ def analyze_breach_market_correlation():
             "recovery_text": recovery_text
         }
         
-        # Get AI analysis from Mistral
-        logger.info("Requesting AI analysis from Mistral...")
-        analysis_text = analyze_breach_impact(correlation_result)
+ # Get AI analysis from Mistral
+logger.info("Requesting AI analysis from Mistral...")
+analysis_text = analyze_breach_impact(correlation_result)
+
+logger.info(f"✅ Analysis complete for {breach.get('company')}")
+
+# Generate PDF
+pdf_report = None
+try:
+    if not company_df.empty and not sp500_df.empty and len(company_df) > 5:
+        dates = [d.strftime('%Y-%m-%d') for d in company_df.index]
+        company_prices = company_df['Close'].tolist()
+        market_prices = sp500_df['Close'].tolist()
         
-        logger.info(f"✅ Analysis complete for {breach.get('company')}")
+        volatility = []
+        for i in range(1, len(company_df)):
+            daily_pct_change = ((company_df['Close'].iloc[i] - company_df['Close'].iloc[i-1]) / company_df['Close'].iloc[i-1]) * 100
+            volatility.append(daily_pct_change)
         
-        return jsonify({
-            "found": True,
-            "result": correlation_result,
-            "analysis": analysis_text
-        }), 200
-    
+        price_series = {
+            'dates': dates,
+            'company_prices': company_prices,
+            'market_prices': market_prices,
+            'volatility': volatility
+        }
+        
+        os.makedirs('output/reports', exist_ok=True)
+        pdf_report = generate_breach_report_pdf(
+            correlation_result=correlation_result,
+            analysis_text=analysis_text,
+            price_series=price_series,
+            output_dir='output/reports'
+        )
+        
+        if pdf_report:
+            logger.info(f"✅ PDF generated: {pdf_report}")
+
+except Exception as e:
+    logger.warning(f"PDF generation skipped: {e}")
+    pdf_report = None
+
+return jsonify({
+    "found": True,
+    "result": correlation_result,
+    "analysis": analysis_text,
+    "pdf_report": pdf_report
+}), 200
+
     except Exception as e:
         logger.error(f"Market analysis failed: {e}", exc_info=True)
         return jsonify({
