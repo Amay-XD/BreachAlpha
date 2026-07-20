@@ -29,3 +29,8 @@ flake8==6.1.0
 # Utilities
 requests==2.31.0
 python-dateutil==2.8.2
+
+# Output pdf 
+matplotlib==3.7.0
+reportlab==4.0.7
+numpy==1.24.0
