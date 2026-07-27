@@ -27,7 +27,7 @@ from collectors.correlations import (
 )
 from data.breach_lookup import find_breach, load_breaches
 from ai_engine.mistral_analysis import analyze_breach_impact, analyze_no_breach
-from output.pdf import generate_breach_report_pdf
+from output.pdf import export_breach_pdf
 
 
 # ============================================================================
@@ -645,7 +645,7 @@ def analyze_breach_market_correlation():
                 }
 
                 os.makedirs('output/reports', exist_ok=True)
-                pdf_report = generate_breach_report_pdf(
+                pdf_report = export_breach_pdf(
                     correlation_result=correlation_result,
                     analysis_text=analysis_text,
                     price_series=price_series,
