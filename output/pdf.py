@@ -325,11 +325,11 @@ def generate_sector_peer_chart(
         # Generate synthetic peer data
         np.random.seed(42)
         peers = [
-            {"name": "Peer A", "records": 50e6, "impact": -8.5, "cap": 15e9, "color": MPLCOL['gray'}},
-            {"name": "Peer B", "records": 120e6, "impact": -12.0, "cap": 25e9, "color": MPLCOL['gray'}},
-            {"name": "Peer C", "records": 200e6, "impact": -18.5, "cap": 35e9, "color": MPLCOL['gray'}},
+            {"name": "Peer A", "records": 50e6, "impact": -8.5, "cap": 15e9, "color": MPLCOL['gray']},
+            {"name": "Peer B", "records": 120e6, "impact": -12.0, "cap": 25e9, "color": MPLCOL['gray']},
+            {"name": "Peer C", "records": 200e6, "impact": -18.5, "cap": 35e9, "color": MPLCOL['gray']},
             {"name": company_name, "records": 147e6, "impact": company_impact, "cap": 40e9, "color": MPLCOL['teal']},
-            {"name": "Peer D", "records": 75e6, "impact": -6.2, "cap": 12e9, "color": MPLCOL['gray'}},
+            {"name": "Peer D", "records": 75e6, "impact": -6.2, "cap": 12e9, "color": MPLCOL['gray']},
         ]
         peer_data = peers
     
