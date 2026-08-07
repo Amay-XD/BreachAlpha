@@ -9,7 +9,7 @@ Usage:
 """
 
 import os
-from Backend.app import create_app
+from backend.app import create_app
 
 app = create_app(os.getenv('FLASK_ENV', 'development'))
 
