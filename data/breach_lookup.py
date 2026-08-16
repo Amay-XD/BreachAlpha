@@ -116,7 +116,7 @@ def search_breaches(keyword: str, breaches: List[Dict]) -> List[Dict]:
        sector = (breach.get("sector") or "").lower()
        attack_vector = (breach.get("attack_vector") or "").lower()
         
-        if (keyword_lower in company or
+    if (keyword_lower in company or
             keyword_lower in breach_type or
             keyword_lower in sector or
             keyword_lower in attack_vector):
