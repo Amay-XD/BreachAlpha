@@ -72,13 +72,13 @@ def find_breach(query: str, breaches: List[Dict]) -> Optional[Dict]:
     
     for breach in breaches:
         # Exact ticker match (case-insensitive)
-        ticker = breach.get("ticker", "").lower()
+        ticker = (breach.get("ticker") or "").lower()
         if ticker and query_lower == ticker:
             logger.info(f"✅ Found breach by ticker: {query}")
             return breach
         
         # Partial company name match (case-insensitive)
-        company = breach.get("company", "").lower()
+        company = (breach.get("company") or "").lower()
         if query_lower in company:
             logger.info(f"✅ Found breach by company: {query}")
             return breach
@@ -111,10 +111,10 @@ def search_breaches(keyword: str, breaches: List[Dict]) -> List[Dict]:
     results = []
     
     for breach in breaches:
-        company = breach.get("company", "").lower()
-        breach_type = breach.get("type", "").lower()
-        sector = breach.get("sector", "").lower()
-        attack_vector = breach.get("attack_vector", "").lower()
+       company = (breach.get("company") or "").lower()
+       breach_type = (breach.get("type") or "").lower()
+       sector = (breach.get("sector") or "").lower()
+       attack_vector = (breach.get("attack_vector") or "").lower()
         
         if (keyword_lower in company or
             keyword_lower in breach_type or
