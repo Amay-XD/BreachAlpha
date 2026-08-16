@@ -65,6 +65,11 @@ def validate_query(f):
     """Decorator to validate user input query."""
     @wraps(f)
     def decorated(*args, **kwargs):
+        # CORS FIX: Skip validation for OPTIONS preflight requests
+        # OPTIONS requests have no body and should not be validated
+        if request.method == 'OPTIONS':
+            return f(*args, **kwargs)
+        
         body = request.get_json(silent=True) or {}
         query = (body.get("query") or "").strip()
 
@@ -940,3 +945,4 @@ if __name__ == '__main__':
         debug=debug,
         threaded=True
     )
+    
