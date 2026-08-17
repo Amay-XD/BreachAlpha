@@ -1,6 +1,6 @@
 Flask==3.0.0
 Flask-CORS==4.0.0
-yfinance==0.2.32
+yfinance==0.2.38
 pandas==2.3.3
 mistralai==0.0.11
 python-dotenv==1.0.0
