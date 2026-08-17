@@ -651,11 +651,10 @@ def analyze_breach_market_correlation():
 
                 os.makedirs('output/reports', exist_ok=True)
                 pdf_report = export_breach_pdf(
-                    correlation_result=correlation_result,
-                    analysis_text=analysis_text,
-                    price_series=price_series,
-                    output_dir='output/reports'
-                )
+                 breach=breach,
+                 output_dir='output/reports',
+                 include_charts=True
+                 )
 
                 if pdf_report:
                     logger.info(f"✅ PDF generated: {pdf_report}")
@@ -845,39 +844,7 @@ def breaches_by_sector(sector: str):
         "count": len(sector_breaches)
     }), 200
 
-# ============================================================================
-# API ROUTES - PDF EXPORT (Future Feature)
-# ============================================================================
 
-@app.route('/api/v1/export/pdf/<query>', methods=['GET'])
-@handle_errors
-def export_breach_pdf(query: str):
-    """
-    Export breach analysis as PDF (future feature).
-
-    Args:
-        query: Company name or ticker
-
-    Note: Requires prior analysis. This is a placeholder for future implementation.
-    """
-    breach = find_breach(query, app.breaches)
-
-    if not breach:
-        return jsonify({"error": "Breach not found"}), 404
-
-    try:
-        # TODO: Implement PDF generation
-        # pdf_path = generate_breach_report(breach, correlation_result)
-        # return send_file(pdf_path, as_attachment=True)
-
-        return jsonify({
-            "message": "PDF export feature coming soon",
-            "breach": breach.get("company")
-        }), 501  # Not Implemented
-
-    except Exception as e:
-        logger.error(f"PDF export failed: {e}")
-        return jsonify({"error": "PDF generation failed"}), 500
 
 # ============================================================================
 # ERROR HANDLERS
