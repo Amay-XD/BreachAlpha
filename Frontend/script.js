@@ -53,9 +53,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     attachEventListeners();
 });
 
-/* ============================================
+/* ===========================================
    EVENT LISTENERS
-   ============================================ */
+   =========================================== */
 
 function attachEventListeners() {
     searchForm.addEventListener('submit', handleSearch);
