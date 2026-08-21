@@ -9,3 +9,4 @@ matplotlib==3.11.1
 reportlab==4.0.7
 numpy==2.5.1
 gunicorn==21.2.0
+alpha-vantage==3.0.0
