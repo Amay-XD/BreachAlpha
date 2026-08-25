@@ -179,7 +179,11 @@ def get_price_window(ticker: str, center_date_str: str, days: int = 30):
         DataFrame with OHLCV data (real or synthetic)
     """
     # Normalize ticker (handle GSPC or ^GSPC)
-    ticker_normalized = ticker.replace('^', '')
+    ticker_normalized = (ticker or "").replace('^', '')
+
+    if not ticker_normalized:
+        logger.warning(f"❌ Empty ticker - using synthetic data")
+    return generate_synthetic_data("UNKNOWN", center_date_str, days)
     
     # Try Alpha Vantage (REAL DATA)
     logger.info(f"🔵 Attempting Alpha Vantage for {ticker}")
