@@ -18,6 +18,9 @@ from typing import Dict, Any, Optional, Tuple, List
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
+# Add root directory to Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 # Import helper modules
 from collectors.stock_collector import get_price_window
 from collectors.correlations import (
