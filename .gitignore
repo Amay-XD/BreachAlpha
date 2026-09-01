@@ -1,0 +1,213 @@
+# ============================================================================
+# BreachAlpha .gitignore
+# ============================================================================
+# NEVER commit: secrets, cache, dependencies, env files, IDE config
+
+# ============================================================================
+# ENVIRONMENT & SECRETS (CRITICAL - NEVER COMMIT)
+# ============================================================================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+secrets.json
+config.json
+
+# ============================================================================
+# PYTHON
+# ============================================================================
+# Virtual environments
+venv/
+__venv/
+env/
+ENV/
+.venv
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# ============================================================================
+# NODE / FRONTEND (if applicable)
+# ============================================================================
+node_modules/
+npm-debug.log
+yarn-error.log
+.next/
+.nuxt/
+dist/
+
+# ============================================================================
+# IDE & EDITOR
+# ============================================================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# ============================================================================
+# OS
+# ============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================================================
+# LOGS & TEMP FILES
+# ============================================================================
+*.log
+logs/
+*.log.*
+.logs/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+.tmp/
+
+# ============================================================================
+# DATABASE & DATA
+# ============================================================================
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+data/local*
+database/
+data/*.csv
+data/*.xlsx
+
+# ============================================================================
+# BUILD & DIST
+# ============================================================================
+build/
+dist/
+*.whl
+*.tar.gz
+*.zip
+
+# ============================================================================
+# JUPYTER NOTEBOOKS (if using)
+# ============================================================================
+.ipynb_checkpoints/
+*.ipynb
+
+# ============================================================================
+# DOCKER (if using)
+# ============================================================================
+docker-compose.override.yml
+.dockerignore
+
+# ============================================================================
+# API KEYS & CREDENTIALS
+# ============================================================================
+# Keep these patterns to catch accidental secret commits
+*secret*
+*api_key*
+*password*
+*token*
+*credentials*
+.aws/
+.gcp/
+
+# ============================================================================
+# LOCAL OVERRIDES (developer-specific)
+# ============================================================================
+local_settings.py
+settings_local.py
+.local/
+local/
+
+# ============================================================================
+# TESTING
+# ============================================================================
+.tox/
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+
+# ============================================================================
+# GENERATED FILES (but keep structure)
+# ============================================================================
+output/reports/*.pdf
+output/reports/*.html
+!output/reports/.gitkeep
+
+# ============================================================================
+# OS-SPECIFIC
+# ============================================================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
