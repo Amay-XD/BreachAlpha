@@ -1,8 +1,5 @@
-Absolutely 😂. Claude's limit doesn't matter anymore. I'll give you the **complete cleaned-up `README.md`**, based on the README you pasted, with the stale links, fake placeholders, wrong Vite variables, PDF claim, and missing synthetic-data disclosure fixed. 
 
-**Replace your entire `README.md` with this:**
 
-````markdown
 # BreachAlpha 🛡️💹
 
 > **Every breach tells a story.  
