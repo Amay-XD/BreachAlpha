@@ -353,17 +353,21 @@ def create_app(config_name: str = 'development') -> Flask:
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     app.config['FLASK_ENV'] = config_name
 
-    # CORS Configuration
-    cors_origins = os.getenv(
-        'CORS_ORIGINS',
-        'http://localhost:8000,http://localhost:3000,http://localhost:8080'
-    ).split(',')
+  # CORS Configuration
+    cors_origins = [
+        origin.strip()
+        for origin in os.getenv(
+            'CORS_ORIGINS',
+            'http://localhost:8000,http://localhost:3000,http://localhost:8080'
+        ).split(',')
+        if origin.strip()
+    ]
+    
     CORS(
         app,
-        resources={r"/api/*": {"origins": cors_origins, "allow_headers": ["Content-Type"]}},
+        origins=cors_origins,
         supports_credentials=True
     )
-
     # Load breach dataset
     try:
         data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
