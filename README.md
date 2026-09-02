@@ -66,7 +66,7 @@ The goal is simple:
 
 ## 🔍 Breach Analysis
 
-- Search historical data breaches
+- Search historical 250+ data breaches
 - Search and filter companies
 - Instant breach intelligence
 - Market-impact correlation
