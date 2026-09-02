@@ -192,7 +192,7 @@ import axios from "axios";
  * VITE_API_BASE_URL is optional so a deployed frontend can target its backend
  * without changing source code.
  */
-const backendBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:5000";
+const backendBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "https://breachalpha-lsbo.onrender.com";
 
 const api = axios.create({
   baseURL: import.meta.env.DEV ? "/backend" : backendBaseUrl,
